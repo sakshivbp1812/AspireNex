@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+body {
+  @apply bg-gray-800; /* Slightly lighter dark background color */
+  background-image: radial-gradient(var(--tw-gradient-stops)); /* Custom radial gradient from Tailwind config */
+  --tw-gradient-stops: var(--tw-color-opacity, 1) #374151, var(--tw-color-opacity, 1) #475569, var(--tw-color-opacity, 0.5) #64748b; /* Adjusted gradient colors for a lighter appearance */
+}
