@@ -1,5 +1,6 @@
+// components/CreateQuizForm.js
 import { useState } from 'react';
-import Modal from 'react-modal';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -9,6 +10,23 @@ const CreateQuizForm = () => {
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const formVariants = {
+    hidden: { opacity: 0, x: -50 },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.3 } },
+    exit: { opacity: 0, x: 50, transition: { duration: 0.3 } }
+  };
+
+  const buttonVariants = {
+    hover: { scale: 1.05, transition: { duration: 0.2 } },
+    tap: { scale: 0.95, transition: { duration: 0.2 } }
+  };
+
+  const modalVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
+    exit: { opacity: 0, scale: 0.8, transition: { duration: 0.3 } }
+  };
 
   const handleQuestionAdd = () => {
     setQuestions([
@@ -127,7 +145,6 @@ const CreateQuizForm = () => {
       const data = await response.json();
       console.log('Quiz created successfully:', data);
       toast.success('Quiz created successfully!');
-      // Reset form or redirect as needed
       setQuizCreator('');
       setTopic('');
       setQuestions([]);
@@ -137,40 +154,56 @@ const CreateQuizForm = () => {
       toast.error('Failed to create quiz.');
     }
   };
-  
 
   const isFormValid = () => {
     const currentQuestion = questions[currentQuestionIndex];
     return (
+      currentQuestion &&
       currentQuestion.questionText.trim() !== '' &&
       currentQuestion.options.every(option => option.trim() !== '') &&
       currentQuestion.correctOption.length > 0
     );
   };
-
-  const clearAllQuestions = () => {
-    setQuestions([]);
-    setCurrentQuestionIndex(0);
-  };
-
   return (
     <>
-      <form className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">Quiz Created By</label>
+     <ToastContainer 
+        position="bottom-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
+     <form className="space-y-8">
+      <motion.div variants={formVariants} initial="hidden" animate="visible" className="bg-gray-800 rounded-lg p-6">
+        <label className="block text-purple-400 text-sm font-bold mb-2">Quiz Creator</label>
+        <div className="flex items-center bg-gray-700 rounded-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 ml-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
           <input
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-600"
             type="text"
             value={quizCreator}
             onChange={(e) => setQuizCreator(e.target.value)}
-            placeholder="Quiz Creator Name"
+            placeholder="Your Name"
             required
           />
         </div>
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">Topic</label>
+      </motion.div>
+
+      <motion.div variants={formVariants} initial="hidden" animate="visible" className="bg-gray-800 rounded-lg p-6">
+        <label className="block text-purple-400 text-sm font-bold mb-2">Topic</label>
+        <div className="flex items-center bg-gray-700 rounded-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 ml-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+          </svg>
           <input
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-600"
             type="text"
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
@@ -178,174 +211,283 @@ const CreateQuizForm = () => {
             required
           />
         </div>
-        <hr className="my-4" />
+      </motion.div>
+
+      <AnimatePresence mode="wait">
         {questions.map((question, index) => (
-          <div key={index} className={index === currentQuestionIndex ? '' : 'hidden'}>
-            <label className="block text-gray-700 text-sm font-bold mb-2">Question {index + 1}</label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-2"
-              type="text"
-              value={question.questionText}
-              onChange={(e) => handleQuestionChange(index, 'questionText', e.target.value)}
-              placeholder="Question Text"
-              required
-            />
-            <div className="grid grid-cols-2 gap-4 mb-2">
-              {question.options.map((option, optIndex) => (
-                <input
-                  key={optIndex}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  type="text"
-                  value={option}
-                  onChange={(e) => handleQuestionChange(index, 'options', { index: optIndex, value: e.target.value })}
-                  placeholder={`Option ${optIndex + 1}`}
-                  required
-                />
-              ))}
-            </div>
-            <div className="mb-2">
-              <label className="block text-gray-700 text-sm font-bold mb-2">Correct Option</label>
-              <div>
+          index === currentQuestionIndex && (
+            <motion.div
+              key={index}
+              variants={formVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="bg-gray-800 rounded-lg p-6 space-y-6"
+            >
+              <h2 className="text-2xl font-bold text-purple-400 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Question {index + 1}
+              </h2>
+              <input
+                className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-600"
+                type="text"
+                value={question.questionText}
+                onChange={(e) => handleQuestionChange(index, 'questionText', e.target.value)}
+                placeholder="Question Text"
+                required
+              />
+              <div className="grid grid-cols-2 gap-4">
                 {question.options.map((option, optIndex) => (
-                  <label key={optIndex} className="flex items-center">
+                  <div key={optIndex} className="flex items-center bg-gray-700 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                    </svg>
                     <input
-                      type={question.multiCorrect ? "checkbox" : "radio"}
-                      checked={question.correctOption.includes(optIndex)}
-                      onChange={() => handleCorrectOptionChange(index, optIndex)}
-                      className="mr-2 leading-tight"
+                      className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      type="text"
+                      value={option}
+                      onChange={(e) => handleQuestionChange(index, 'options', { index: optIndex, value: e.target.value })}
+                      placeholder={`Option ${optIndex + 1}`}
+                      required
                     />
-                    <span className="text-gray-700">{`Option ${optIndex + 1}`}</span>
-                  </label>
+                  </div>
                 ))}
               </div>
-            </div>
-            <div className="mb-2">
-              <label className="block text-gray-700 text-sm font-bold mb-2">Allow Multiple Correct Answers?</label>
-              <label className="flex items-center">
+              <div>
+                <label className="block text-purple-400 text-sm font-bold mb-2">Correct Option(s)</label>
+                <div className="flex flex-wrap gap-4">
+                  {question.options.map((_, optIndex) => (
+                    <label key={optIndex} className="flex items-center space-x-2 bg-gray-700 p-2 rounded-lg">
+                      <input
+                        type={question.multiCorrect ? "checkbox" : "radio"}
+                        checked={question.correctOption.includes(optIndex)}
+                        onChange={() => handleCorrectOptionChange(index, optIndex)}
+                        className="form-checkbox h-5 w-5 text-purple-600"
+                      />
+                      <span className="text-gray-300">Option {optIndex + 1}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center bg-gray-700 p-3 rounded-lg">
                 <input
                   type="checkbox"
                   checked={question.multiCorrect}
                   onChange={(e) => handleMultiCorrectChange(index, e.target.checked)}
-                  className="mr-2 leading-tight"
+                  className="form-checkbox h-5 w-5 text-purple-600"
                 />
-                <span className="text-gray-700">Allow multiple correct answers</span>
-              </label>
-            </div>
-            <div className="mb-2">
-              <label className="block text-gray-700 text-sm font-bold mb-2">Difficulty Level</label>
-              <select
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                value={question.difficulty}
-                onChange={(e) => handleDifficultyChange(index, e.target.value)}
-                required
-              >
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
-              </select>
-            </div>
-            <div className="mb-2">
-              <label className="block text-gray-700 text-sm font-bold mb-2">Time Limit (seconds)</label>
-              <input
-                className="shadow appearance-none border rounded w-24 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                type="number"
-                value={question.timeLimit}
-                onChange={(e) => handleTimeLimitChange(index, e.target.value)}
-                min="10"
-                required
-              />
-            </div>
-            <button
-              type="button"
-              onClick={() => clearQuestion(index)}
-              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4"
-            >
-              Clear Question
-            </button>
-          </div>
+                <span className="ml-2 text-gray-300">Allow multiple correct answers</span>
+              </div>
+              <div className="flex space-x-4">
+                <div className="flex-1">
+                  <label className="block text-purple-400 text-sm font-bold mb-2">Difficulty</label>
+                  <div className="flex items-center bg-gray-700 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <select
+                      className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      value={question.difficulty}
+                      onChange={(e) => handleDifficultyChange(index, e.target.value)}
+                      required
+                    >
+                      <option value="easy">Easy</option>
+                      <option value="medium">Medium</option>
+                      <option value="hard">Hard</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <label className="block text-purple-400 text-sm font-bold mb-2">Time Limit (seconds)</label>
+                  <div className="flex items-center bg-gray-700 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <input
+                      className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-600"
+                      type="number"
+                      value={question.timeLimit}
+                      onChange={(e) => handleTimeLimitChange(index, e.target.value)}
+                      min="10"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )
         ))}
-        <div className="flex justify-between mt-4">
-          {currentQuestionIndex > 0 && (
-            <button
-              type="button"
-              onClick={handlePreviousQuestion}
-              className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            >
-              Previous
-            </button>
-          )}
-          {currentQuestionIndex < questions.length && (
-            <button
-              type="button"
-              onClick={handleNextQuestion}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              disabled={!isFormValid()}
-            >
-              Next
-            </button>
-          )}
-        </div>
-        <div className="flex justify-end mt-4">
-          <button
-            type="button"
-            onClick={handleQuestionAdd}
-            className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-          >
-            Add Question
-          </button>
-          <button
-            type="button"
-            onClick={handleOpenModal}
-            className="ml-2 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-          >
-            Preview
-          </button>
-        </div>
-      </form>
-      <Modal
-        isOpen={isModalOpen}
-        onRequestClose={handleCloseModal}
-        contentLabel="Quiz Preview"
-        className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50"
+      </AnimatePresence>
+
+      <div className="flex justify-between mt-6">
+        <motion.button
+          variants={buttonVariants}
+          whileHover="hover"
+          whileTap="tap"
+          type="button"
+          onClick={handlePreviousQuestion}
+          className="bg-gray-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline flex items-center"
+          disabled={currentQuestionIndex === 0}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Previous
+        </motion.button>
+        <motion.button
+          variants={buttonVariants}
+          whileHover="hover"
+          whileTap="tap"
+          type="button"
+          onClick={handleNextQuestion}
+          className="bg-purple-600 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline flex items-center"
+          disabled={currentQuestionIndex === questions.length - 1 || !isFormValid()}
+        >
+          Next
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </motion.button>
+      </div>
+
+      <div className="flex justify-end space-x-4 mt-6">
+        <motion.button
+          variants={buttonVariants}
+          whileHover="hover"
+          whileTap="tap"
+          type="button"
+          onClick={handleQuestionAdd}
+          className="bg-green-600 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline flex items-center"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          Add Question
+        </motion.button>
+        <motion.button
+          variants={buttonVariants}
+          whileHover="hover"
+          whileTap="tap"
+          type="button"
+          onClick={handleOpenModal}
+          className="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline flex items-center"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+          Preview
+        </motion.button>
+      </div>
+    </form>
+  
+    <AnimatePresence>
+  {isModalOpen && (
+    <motion.div
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div
+        className="bg-gray-800 p-8 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+        variants={modalVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
       >
-        <div className="bg-white p-6 rounded-lg shadow-lg max-w-3xl w-full">
-          <h2 className="text-2xl font-bold mb-4">Quiz Preview</h2>
-          <p><strong>Quiz Creator:</strong> {quizCreator}</p>
-          <p><strong>Topic:</strong> {topic}</p>
-          <hr className="my-4" />
+        <h2 className="text-3xl font-bold text-purple-400 mb-6 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+          </svg>
+          Quiz Preview
+        </h2>
+        <div className="space-y-4 mb-6">
+          <p className="text-gray-300"><span className="font-bold">Quiz Creator:</span> {quizCreator}</p>
+          <p className="text-gray-300"><span className="font-bold">Topic:</span> {topic}</p>
+        </div>
+        <div className="space-y-6">
           {questions.map((question, index) => (
-            <div key={index} className="mb-4">
-              <h3 className="font-bold">Question {index + 1}</h3>
-              <p>{question.questionText}</p>
-              <div>
+            <div key={index} className="bg-gray-700 p-4 rounded-lg">
+              <h3 className="text-xl font-bold text-purple-400 mb-2 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Question {index + 1}
+              </h3>
+              <p className="text-white mb-2">{question.questionText}</p>
+              <div className="grid grid-cols-2 gap-2 mb-2">
                 {question.options.map((option, optIndex) => (
-                  <p key={optIndex} className={question.correctOption.includes(optIndex) ? 'text-green-600' : ''}>
-                    {`Option ${optIndex + 1}: ${option}`}
+                  <p 
+                    key={optIndex} 
+                    className={`p-2 rounded flex items-center ${question.correctOption.includes(optIndex) 
+                      ? 'bg-green-600 text-white' 
+                      : 'bg-gray-600 text-gray-300'}`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {option}
                   </p>
                 ))}
               </div>
-              <p><strong>Difficulty:</strong> {question.difficulty}</p>
-              <p><strong>Time Limit:</strong> {question.timeLimit} seconds</p>
-              {question.multiCorrect && <p className="text-red-500">Multiple correct answers allowed</p>}
+              <p className="text-gray-300 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span className="font-bold">Difficulty:</span> {question.difficulty}
+              </p>
+              <p className="text-gray-300 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="font-bold">Time Limit:</span> {question.timeLimit} seconds
+              </p>
+              {question.multiCorrect && (
+                <p className="text-yellow-400 flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Multiple correct answers allowed
+                </p>
+              )}
             </div>
           ))}
-          <div className="flex justify-end">
-            <button
-              onClick={handleSubmit}
-              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            >
-              Submit
-            </button>
-            <button
-              onClick={handleCloseModal}
-              className="ml-2 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            >
-              Discard
-            </button>
-          </div>
         </div>
-      </Modal>
-      <ToastContainer />
+        <div className="flex justify-end mt-6 space-x-4">
+          <motion.button
+            variants={buttonVariants}
+            whileHover="hover"
+            whileTap="tap"
+            onClick={handleSubmit}
+            className="bg-green-600 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline flex items-center"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            Submit Quiz
+          </motion.button>
+          <motion.button
+            variants={buttonVariants}
+            whileHover="hover"
+            whileTap="tap"
+            onClick={handleCloseModal}
+            className="bg-red-600 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline flex items-center"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Close Preview
+          </motion.button>
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+  
+     
     </>
   );
 };

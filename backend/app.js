@@ -17,7 +17,7 @@ app.use('/api/quizzes', quizRoutes);
 
 
   const connectDB = () => {
-    mongoose.connect("mongodb+srv://parasraut821:Paras123@cluster0.u7h0aaq.mongodb.net/quiz?retryWrites=true&w=majority", { useNewUrlParser: true, useUnifiedTopology: true })
+    mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
         .then(() => {
             console.log("Mongoose Connected");
         });

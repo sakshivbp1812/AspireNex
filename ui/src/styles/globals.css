@@ -8,3 +8,18 @@ body {
   background-image: radial-gradient(var(--tw-gradient-stops)); /* Custom radial gradient from Tailwind config */
   --tw-gradient-stops: var(--tw-color-opacity, 1) #374151, var(--tw-color-opacity, 1) #475569, var(--tw-color-opacity, 0.5) #64748b; /* Adjusted gradient colors for a lighter appearance */
 }
+
+
+
+
+
+
+
+
+
+
+
+
+.Toastify__toast-container {
+  z-index: 9999;
+}
