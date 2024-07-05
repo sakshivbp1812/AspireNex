@@ -1,17 +1,35 @@
-// controllers/authController.js
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const config = require('../config/config');
 const User = require('../models/User');
 
+// Helper function to validate email format
+const validateEmail = (email) => {
+  const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@(([^<>()[\]\.,;:\s@"]+\.)+[^<>()[\]\.,;:\s@"]{2,})$/i;
+  return re.test(String(email).toLowerCase());
+};
+
 const register = async (req, res) => {
   const { name, email, password } = req.body;
+
+  if (!name || !email || !password) {
+    return res.status(400).json({ message: 'All fields are required' });
+  }
+
+  if (!validateEmail(email)) {
+    return res.status(400).json({ message: 'Invalid email format' });
+  }
 
   try {
     // Check if user already exists
     let user = await User.findOne({ email });
     if (user) {
       return res.status(400).json({ message: 'User already exists' });
+    }
+
+    user = await User.findOne({ name });
+    if (user) {
+      return res.status(400).json({ message: 'Username already exists' });
     }
 
     // Create new user
@@ -32,7 +50,7 @@ const register = async (req, res) => {
     const payload = {
       user: {
         id: user.id,
-        name: user.name, // Include user's name in the payload
+        name: user.name,
       },
     };
 
@@ -42,7 +60,7 @@ const register = async (req, res) => {
       { expiresIn: '1h' },
       (err, token) => {
         if (err) throw err;
-        res.json({ token, name: user.name }); // Return token and user's name
+        res.json({ token, name: user.name });
       }
     );
   } catch (err) {
@@ -53,6 +71,14 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required' });
+  }
+
+  if (!validateEmail(email)) {
+    return res.status(400).json({ message: 'Invalid email format' });
+  }
 
   try {
     // Check if user exists
@@ -71,7 +97,7 @@ const login = async (req, res) => {
     const payload = {
       user: {
         id: user.id,
-        name: user.name // Assuming 'name' is the field in your User schema
+        name: user.name,
       },
     };
 
